@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  webapi:
+    image: basnetujwal/everestcartwebapi
+    build:
+      context: .
+      dockerfile: Dockerfile
