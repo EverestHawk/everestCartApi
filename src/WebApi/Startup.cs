@@ -32,6 +32,8 @@ using IdentityServer4.AccessTokenValidation;
 using static Infrastructure.Helpers.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace WebApi
 {
@@ -226,7 +228,14 @@ namespace WebApi
                 .RequireAuthenticatedUser()
                 .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+            .AddJsonOptions(options=> {
+                var strEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
+                options.UseCamelCasing(false);
+                options.SerializerSettings.Converters.Add(strEnumConverter);
+                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                
+            });
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             
         }

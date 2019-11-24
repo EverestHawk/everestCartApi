@@ -29,7 +29,7 @@ namespace webapi
                     RequireConsent = false,
 
 
-                    RedirectUris =           { "http://localhost:4200/signin-callback", "http://localhost:4200/assets/silent-callback.html" },
+                    RedirectUris =           { "http://localhost:4200/signin", "http://localhost:4200/assets/silent-callback.html" },
                     PostLogoutRedirectUris = { "http://localhost:4200/signout-callback" },
                     AllowedCorsOrigins =     { "http://localhost:4200" },
 
