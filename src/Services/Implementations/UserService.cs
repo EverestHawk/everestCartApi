@@ -5,6 +5,7 @@ using ApplicationCore.TypeMapping;
 using Infrastructure.Enums;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.ViewModels;
 using Services.ViewModels.Account;
@@ -22,17 +23,20 @@ namespace Services.Implementations
         private readonly ITokenFactory _tokenFactory;
         private readonly IJwtFactory _jwtFactory;
         private readonly IAutoMapper _mapper;
+        private readonly ILogger<UserService> _logger;
         public UserService(UserManager<ApplicationUser> userManager,
             IAsyncRepository<User> userRepository,
             ITokenFactory tokenFactory,
             IJwtFactory jwtFactory,
-            IAutoMapper mapper)
+            IAutoMapper mapper,
+            ILogger<UserService> logger)
         {
             _userManager = userManager;
             _userRepository = userRepository;
             _tokenFactory = tokenFactory;
             _jwtFactory = jwtFactory;
             _mapper = mapper;
+            _logger = logger;
         }
         public async Task<bool> CheckUserPassword(User user, string password)
         {
@@ -99,8 +103,9 @@ namespace Services.Implementations
 
                     user.ExpireAllActiveTokenForUser(uvm.Id);
                     user.AddRefreshToken(refreshToken, uvm.Id, model.RemoteIpAddress);
-
                     await _userRepository.UpdateAsync(user);
+
+
                     //access token
                     var accessToken = await _jwtFactory.GenerateAccessToken(uvm.IdentityId, uvm.UserName);
 

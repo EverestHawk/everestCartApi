@@ -1,8 +1,4 @@
-﻿using System;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using ApplicationCore;
+﻿using ApplicationCore;
 using ApplicationCore.Interfaces;
 using ApplicationCore.Services;
 using ApplicationCore.TypeMapping;
@@ -20,9 +16,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Services.Implementations;
 using Services.Interfaces;
+using System;
+using System.Text;
+using System.Threading.Tasks;
 using WebApi.Interfaces;
 using WebApi.Services;
 using static Infrastructure.Helpers.Constants;
@@ -31,18 +31,24 @@ namespace WebApi
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public IConfiguration Configuration { get; }
+
+        private readonly ILogger<Startup> _logger;
+        public Startup(IConfiguration configuration, ILogger<Startup> logger)
         {
             Configuration = configuration;
+            _logger = logger;
+
+
         }
 
-        public IConfiguration Configuration { get; }
+
 
         public void ConfigureDevelopmentServices(IServiceCollection services)
         {
             //ConfigureTestingServices(services);
             //using real database
-            ConfigureProductionServices(services);
+            ConfigureProductionServices(services, _logger);
         }
 
         public void ConfigureTestingServices(IServiceCollection services)
@@ -58,8 +64,13 @@ namespace WebApi
             ConfigureServices(services);
         }
 
-        public void ConfigureProductionServices(IServiceCollection services)
+        public void ConfigureProductionServices(IServiceCollection services, ILogger<Startup> logger)
         {
+            _logger.LogInformation("Starting the application");
+            services.AddHealthChecks()
+                .AddDbContextCheck<CatalogContext>()
+                .AddDbContextCheck<AppIdentityDbContext>();
+
             //Requires LocalDB, which can be installed with SQL server Express 2016
             services.AddDbContext<CatalogContext>(c =>
             c.UseSqlServer(Configuration.GetConnectionString("CatalogConnection"), b => b.MigrationsAssembly("Infrastructure")));
@@ -76,7 +87,7 @@ namespace WebApi
         {
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppIdentityDbContext>()
-                .AddDefaultTokenProviders();            
+                .AddDefaultTokenProviders();
 
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
             services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
@@ -192,8 +203,19 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseCors("ecCorsPolicy");
+            if (env.IsDevelopment())
+            {
 
+                app.UseDeveloperExceptionPage();
+
+            }
+            else
+            {
+                app.UseHsts();
+            }
+
+            app.UseCors("ecCorsPolicy");
+            app.UseHealthChecks("/health");
             app.UseAuthentication();
 
             app.UseMvc();

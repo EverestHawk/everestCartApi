@@ -19,7 +19,7 @@
     },
     "WebApi": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "api/catalog/getCatalogItems",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

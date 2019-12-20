@@ -46,6 +46,8 @@ namespace WebApi
                 logging.ClearProviders();
                 hostingContext.HostingEnvironment.ConfigureNLog("nlog.config");
                 logging.AddProvider(new NLogLoggerProvider());
+                logging.AddConsole();
+                logging.AddDebug();
             })
             .UseStartup<Startup>();
     }
